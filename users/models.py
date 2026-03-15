@@ -20,5 +20,12 @@ class User(AbstractUser):
         help_text="Comma separated values like HOME,AUTO,LIFE"
     )
 
+    # Add this under preferred_insurance_types
+    assigned_ticket_types = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Comma separated e.g., NEW,RENEWAL. Leave blank for ALL."
+    )
+
     def __str__(self):
         return self.username

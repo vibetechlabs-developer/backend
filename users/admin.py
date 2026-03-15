@@ -18,6 +18,7 @@ class UserAdmin(DjangoUserAdmin):
         "role",
         "preferred_insurance_types",
         "is_staff",
+        'assigned_ticket_types'
     )
 
     list_filter = DjangoUserAdmin.list_filter + ("role", "preferred_insurance_types")  

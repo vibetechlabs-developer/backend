@@ -74,7 +74,8 @@ class Ticket(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="assigned_tickets"
     )
 
     source = models.CharField(
