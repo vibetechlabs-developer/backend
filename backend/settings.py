@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'users',
     'whatsapp',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 

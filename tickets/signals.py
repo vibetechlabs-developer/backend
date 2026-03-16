@@ -3,46 +3,54 @@ from django.dispatch import receiver
 from .models import Ticket, TicketActivity
 from .services import auto_assign_ticket
 
+
+# -----------------------------------------
+# POST SAVE SIGNAL
+# Runs AFTER a ticket is saved
+# Used for:
+# 1) Logging ticket creation
+# 2) Auto assigning agent
+# -----------------------------------------
+
 @receiver(post_save, sender=Ticket)
 def handle_ticket_created(sender, instance, created, **kwargs):
 
+    # If the ticket was just created
     if created:
 
-        # Log ticket creation
+        # Log activity
         TicketActivity.objects.create(
             ticket=instance,
             message="Ticket created."
         )
 
-        # Assign agent automatically
-        if not instance.assigned_to:
+        # Run auto assignment if no agent assigned
+        if not instance.assigned_agent:
             auto_assign_ticket(instance)
 
+
+
+# -----------------------------------------
+# PRE SAVE SIGNAL
+# Runs BEFORE ticket is saved
+# Used for detecting status changes
+# -----------------------------------------
+
 @receiver(pre_save, sender=Ticket)
-def log_ticket_status_change(sender, instance, **kwargs):
+def track_ticket_status_change(sender, instance, **kwargs):
+
+    # If ticket already exists in database
     if instance.pk:
+
         try:
             old_ticket = Ticket.objects.get(pk=instance.pk)
-            
-            # Log Status Changes
-            if old_ticket.status != instance.status:
-                TicketActivity.objects.create(
-                    ticket=instance,
-                    message=f"Status changed from {old_ticket.status} to {instance.status}."
-                )
-            
-            # Log Assignment Changes
-            if old_ticket.assigned_to != instance.assigned_to:
-                if instance.assigned_to:
-                    TicketActivity.objects.create(
-                        ticket=instance,
-                        message=f"Ticket assigned to {instance.assigned_to.username}."
-                    )
-                else:
-                    TicketActivity.objects.create(
-                        ticket=instance,
-                        message="Ticket unassigned."
-                    )
-                    
         except Ticket.DoesNotExist:
-            pass
+            return
+
+        # Check if status changed
+        if old_ticket.status != instance.status:
+
+            TicketActivity.objects.create(
+                ticket=instance,
+                message=f"Status changed from {old_ticket.status} to {instance.status}."
+            )
